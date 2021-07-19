@@ -1,0 +1,74 @@
+Compiler( "g++" ) {
+	.Executable = "/usr/bin/g++"
+}
+
+Compiler( "clang" ) { //might need different flags, check later
+	.Executable = "/usr/bin/clang++"
+}
+
+.BaseCompilerOptions = "-c %1 -o %2"
+		+ " -Wall"
+		+ " -Wextra"
+		+ " -Wno-unused-parameter"
+		+ " -m64"
+		+ " -std=c++17"
+
+ObjectList( "objects" ) {
+	.Compiler = "g++"
+	.CompilerOptions = .BaseCompilerOptions
+		+ " -g" 			//debug symbols
+		+ " -I./include/game" 
+		+ " -I./include"
+		+ " -I./include/glm" 		//glm still req
+		+ " -I/usr/include/SDL2"
+		+ " -D_REENTRANT"		//req by SDL2
+	.CompilerInputPath = "./src/game"
+	.CompilerOutputPath = "./obj/game/"
+}
+
+Library( "njin" ) {
+	.Compiler = "g++"
+	.CompilerOptions = .BaseCompilerOptions
+		+ " -g" 			//debug symbols
+		+ " -I./include/njin"
+		+ " -I./include/picoPNG" 	//picoPNG
+		+ " -I./include/glm" 		//glm
+		+ " -I/usr/include/SDL2"
+		+ " -D_REENTRANT"		//req by SDL2
+	.CompilerInputPath = "./src/njin"
+	.CompilerOutputPath = "./obj/njin/"
+	.Librarian = "/usr/bin/ar"
+	.LibrarianOptions = "rcs %2 %1"
+	.LibrarianOutput = "./lib/njin/njin.a"
+}
+
+Library( "picoPNG" ) {
+	.Compiler = "g++"
+	.CompilerOptions = .BaseCompilerOptions
+		+ " -w"				//no warnings
+		+ " -I./include/picoPNG"
+	.CompilerInputPath = "./src/picoPNG"
+	.CompilerOutputPath = "./obj/picoPNG/"
+	.Librarian = "/usr/bin/ar"
+	.LibrarianOptions = "rcs %2 %1"
+	.LibrarianOutput = "./lib/picoPNG/picoPNG.a"
+}
+
+Executable( "app" ) {
+	.Linker = "/usr/bin/g++"
+	.LinkerOptions = "%1 -o %2"
+		+ " -lSDL2"
+		+ " -lGLEW"
+		+ " -lGLU"
+		+ " -lGL"
+	.LinkerOutput = "./bin/game"
+	.Libraries = {
+		"objects",
+		"njin",
+		"picoPNG"
+	}
+}
+
+Alias ( "all" ) {
+	.Targets = { "app" }
+}
