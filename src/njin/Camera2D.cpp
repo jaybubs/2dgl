@@ -1,5 +1,6 @@
 #include "Camera2D.h"
 #include "glm/ext/matrix_transform.hpp"
+#include "glm/fwd.hpp"
 namespace njin {
   Camera2D::Camera2D() : 
     screenW(500),
@@ -27,7 +28,7 @@ namespace njin {
   void Camera2D::update() {
     if (needsMatrixUpdate) {
 
-      glm::vec3 camTranslate(-position.x, -position.y, 0.0f);
+      glm::vec3 camTranslate((- position.x + (screenW * 0.5)), (- position.y + (screenH * 0.5)), 0.0f);
       cameraMatrix = glm::translate(orthoMatrix, camTranslate);
 
       glm::vec3 camScale(scale, scale, 0.0f);
@@ -36,6 +37,21 @@ namespace njin {
 
       needsMatrixUpdate = false;
     }
+
+  }
+
+  glm::vec2 Camera2D::convertSTW(glm::vec2 screenCoords) {
+    //invert y coord
+    screenCoords.y = screenH - screenCoords.y;
+    //screen edges wil be relative to 0,0 in the centre
+    screenCoords -= glm::vec2(screenW*0.5, screenH*0.5);
+    //take into account camera scale too, optimise for division?
+    screenCoords /= scale;
+    // translate wrt camera
+    screenCoords += position;
+
+    return screenCoords;
+
 
   }
 }

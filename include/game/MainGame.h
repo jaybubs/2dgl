@@ -11,6 +11,7 @@
 #include <njin/SpriteBatch.h>
 #include <njin/InputManager.h>
 #include <njin/Timing.h>
+#include <game/Bullet.h>
 
 enum class GameState {
   PLAY,
@@ -33,6 +34,7 @@ private:
   njin::FPSLimiter fpsLimiter;
 
 
+  std::vector<Bullet> bullets;
 
   float time;
   njin::GLTexture playerTexture;

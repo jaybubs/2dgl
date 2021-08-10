@@ -2,6 +2,7 @@
 #include "SDL_events.h"
 #include "SDL_keycode.h"
 #include "SDL_video.h"
+#include "glm/gtx/dual_quaternion.hpp"
 #include "njin/GLTexture.h"
 #include "njin/ResourceManager.h"
 #include "njin/Vertex.h"
@@ -50,6 +51,16 @@ void MainGame::gameLoop() {
 
     camera.update();
 
+    //update all bullets
+    for (uint i = 0; i < bullets.size();) {
+      if (bullets[i].update() == true) {
+        bullets[i] = bullets.back();
+        bullets.pop_back();
+      } else {
+      i++;
+      }
+    }
+
     drawGame();
 
     fps = fpsLimiter.end();
@@ -57,7 +68,7 @@ void MainGame::gameLoop() {
     //print every 10 frames, for now just cout
     static int frameCounter = 0;
     frameCounter++;
-    if (frameCounter == 100) {
+    if (frameCounter == 1000) {
       std::cout << fps << std::endl;
       frameCounter = 0;
     }
@@ -76,12 +87,19 @@ void MainGame::processInput() {
         gameState = GameState::EXIT;
         break;
       case SDL_MOUSEMOTION:
+        inputManager.setMouseCoords(e.motion.x, e.motion.y);
         break;
       case SDL_KEYDOWN:
         inputManager.pressKey(e.key.keysym.sym);
         break;
       case SDL_KEYUP:
         inputManager.releaseKey(e.key.keysym.sym);
+        break;
+      case SDL_MOUSEBUTTONDOWN:
+        inputManager.pressKey(e.button.button);
+        break;
+      case SDL_MOUSEBUTTONUP:
+        inputManager.releaseKey(e.button.button);
         break;
 
     }
@@ -105,6 +123,18 @@ void MainGame::processInput() {
   if (inputManager.isKeyPressed(SDLK_j)) {
     camera.setScale(camera.getScale() - SCALE_SPEED);
   }
+
+  if (inputManager.isKeyPressed(SDL_BUTTON_LEFT)) {
+    glm::vec2 mouseCoords = camera.convertSTW(inputManager.mouseCoords);
+
+    glm::vec2 playerPosition(0.0f);
+    glm::vec2 direction = mouseCoords - playerPosition;
+    //turn dirxn into a unit vector
+    direction = glm::normalize(direction);
+
+    bullets.emplace_back(playerPosition, direction, 1.0f, 100);
+    }
+  
 }
 
 void MainGame::drawGame() {
@@ -133,7 +163,7 @@ void MainGame::drawGame() {
   spriteBatch.begin();
   //draw batches here
   //x,y,scalex,scaley
-  glm::vec4 pos(50.0f, 50.0f, 150.0f, 150.0f);
+  glm::vec4 pos(0.0f, 0.0f, 150.0f, 150.0f);
   glm::vec4 uv(0.0f, 0.0f, 1.0f, 1.0f);
   njin::GLTexture cock = njin::ResourceManager::getTexture("res/textures/majestickcock.png");
   njin::Color color;
@@ -141,6 +171,11 @@ void MainGame::drawGame() {
   color.g = 255;
   color.b = 255;
   color.a = 255;
+
+  //loop through all existing bullets
+  for (uint i = 0; i < bullets.size(); i++) {
+    bullets[i].draw(spriteBatch);
+  }
   
   spriteBatch.draw(pos, uv, cock.id, 0.0f, color);
 

@@ -21,6 +21,7 @@ namespace njin {
 
       void update();
       //gettersetter - rewrite later
+
       void setPosition(const glm::vec2& newPosition) {
         position = newPosition;
         needsMatrixUpdate = true;
@@ -29,8 +30,11 @@ namespace njin {
         scale = newScale;
         needsMatrixUpdate = true;
       }
+
       glm::vec2 getPosition() { return position; }
       float getScale() { return scale; }
+      // Screen To World
+      glm::vec2 convertSTW(glm::vec2 screenCoords);
       glm::mat4 getCameraMatrix() { return cameraMatrix; }
       glm::mat4 orthoMatrix;
   };
